@@ -127,7 +127,13 @@ describe UsersController do
   end
   
   describe "PUT 'update'" do
-  	describe "failure" do
+  		before(:each) do
+  		     @user = Factory(:user)
+  		     test_sign_in(@user)
+  		end
+  		
+  		describe "failure" do
+  	
   		before(:each) do
   			@attr = { :name => "", :email => "", :password => "", 
   				                                 :password_confirmation => "" } 
@@ -159,27 +165,54 @@ describe UsersController do
   			@user.encrypted_password.should == user.encrypted_password
   		end
   		
+  		it "should redirect to the user show page" do
+  		        put :update, :id => @user, :user => @attr
+  		        response.should redirect_to(user_path(@user))
+  		end
+  		
   		it "should have a flash message" do
   			put :update, :id => @user, :user => @attr
   			flash[:success].should =~ /updated/
   		end
   	end
   end
+
   
-  describe "authentication of edit/update actions" do
+  describe "authentication of edit/update pages" do
   	before(:each) do
   		@user = Factory(:user)
   	end
   
-  	it "should deny access to 'edit'" do
-  		get :edit, :id => @user
-  		response.should redirect_to(signin_path)
-  		flash[:notice].should =~ /sign in/i
-  	end
+  		describe "for non-signed-in users" do      	
+  	      it "should deny access to 'edit'" do
+  	        get :edit, :id => @user
+  	        response.should redirect_to(signin_path)
+  	        flash[:notice].should =~ redirect_to(signin_path)
+  	      end
   	
-  	it "should deny access to 'update'" do
-  		put :update, :id => @user, :user => {}
-  		response.should redirect_to(signin_path)
-  	end
+  	      it "should deny access to 'update'" do
+  	        put :update, :id => @user, :user => {}
+  	        response.should redirect_to(signin_path)
+  	     end
+  	   end
+  	   
+  	   describe "for signed-in users" do
+  	     before(:each) do	
+  	     	wrong_user = Factory(:user => "user@example.net")
+  	     	test_sign_in(wrong_user)
+  	     end
+  	     
+  	     it "should require matching users for 'edit'" do
+  	     	get :edit, :id => @user
+  	     	response.should redirect_to(root_path)
+  	     end
+  	     
+  	     it "should require matching users for 'update'" do
+  	     	put :update, :id => @user, :user => {}
+  	     	response.should redirect_to(root_path)
+  	     end 
+  	     
+  	  end
+    end
   end
 end
