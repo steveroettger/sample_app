@@ -179,3 +179,13 @@ div.field, div.actions {
   font-size: 12px;
   list-style: square;
 }
+
+/* Show users page */
+ul.users {
+	margin-top: 20px;
+}
+
+ul.users li {
+	list-style: none;
+	margin-bottom: 5px;
+}
